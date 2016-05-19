@@ -67,8 +67,12 @@ extern "C" void __cxa_pure_virtual() {;}
 
 //
 void loop(void);
+bool add_button_to_stream(pb_ostream_t *stream, const pb_field_t *field, SNESMessage_ControllerButton button);
+bool list_button_callback(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
 
 #include <snes_sender.ino>
+#include <simple.pb.c>
+#include <simple.pb.h>
 #include <snes_controller.cpp>
 #include <snes_controller.h>
 #endif

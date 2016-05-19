@@ -4,11 +4,16 @@
 - controller hardware power efficiency
 - wake on interrupt?
 */
+#include <pb.h>
+#include <pb_encode.h>
+#include <pb_common.h>
+
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "printf.h"
 #include "snes_controller.h"
+#include "simple.pb.h"
 
 int state = 0;
 
@@ -27,7 +32,7 @@ role_e role = role_pong_back;                                              // Th
 
 // A single byte to keep track of the data being sent back and forth
 byte counter = 1;
-
+SNESMessage snesMessage;
 
 void setup(){
 
@@ -62,30 +67,87 @@ void setup(){
 void loop(void) {
 
 	printf("Now sending %d as payload. ", counter);
-	byte gotByte;
-	unsigned long time = micros();                          // Take the time, and send it.  This will block until complete   
+	
+	
 	//Called when STANDBY-I mode is engaged (User is finished sending)
 	if (!radio.write(&counter, 1)){
 		Serial.println(F("failed."));
 	}
-	state = buttons();
-	if (state & SNES_B)      Serial.print("B");
-	if (state & SNES_Y)      Serial.print("Y");
-	if (state & SNES_SELECT) Serial.print("select");
-	if (state & SNES_START)  Serial.print("start");
-	if (state & SNES_UP)     Serial.print("up");
-	if (state & SNES_DOWN)   Serial.print("down");
-	if (state & SNES_LEFT)   Serial.print("left");
-	if (state & SNES_RIGHT)  Serial.print("right");
-	if (state & SNES_A)      Serial.print("a");
-	if (state & SNES_X)      Serial.print("x");
-	if (state & SNES_L)      Serial.print("l");
-	if (state & SNES_R)      Serial.print("r");
-	Serial.println();
 
 	// Try again later
-	delay(1000);
-	
-
-	
+	delay(1000);	
 }
+
+bool add_button_to_stream(pb_ostream_t *stream, const pb_field_t *field, SNESMessage_ControllerButton button){
+	if (!pb_encode_tag_for_field(stream, field))
+		return false;
+
+	if (!pb_encode_varint(stream, button))
+		return false;
+
+	return true;
+}
+//write out currently pressed buttons during message encoding
+bool list_button_callback(pb_ostream_t *stream, const pb_field_t *field, void * const *arg){
+	state = buttons();
+	bool error = true;
+	
+	if (state & SNES_B)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_B_BUTTON);
+	
+	if (state & SNES_Y)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_Y_BUTTON);
+	
+	if (state & SNES_SELECT) 
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_SELECT_BUTTON);
+
+	if (state & SNES_START)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_START_BUTTON);
+	
+	if (state & SNES_UP)     
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_UP_BUTTON);
+	
+	if (state & SNES_DOWN)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_DOWN_BUTTON);
+	
+	if (state & SNES_LEFT)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_LEFT_BUTTON);
+	
+	if (state & SNES_RIGHT)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_RIGHT_BUTTON);
+	
+	if (state & SNES_A)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_A_BUTTON);
+	
+	if (state & SNES_X)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_X_BUTTON);
+	
+	if (state & SNES_L)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_L_BUTTON);
+	
+	if (state & SNES_R)
+		error |= add_button_to_stream(stream, field, SNESMessage_ControllerButton_R_BUTTON);
+	return error;
+}
+
+
+//void sendData(){
+//	bool status;
+//	size_t message_length;
+//	uint8_t buffer[SNESMessage_size];
+//	snesMessage = SNESMessage_init_zero;
+//	snesMessage.controllerButton.funcs.encode = &list_button_callback;
+//
+//
+//	pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+//	/*message.lucky_number = inputMagicNumber + 1;
+//	Serial.println("Sending back: ");
+//	Serial.println(message.lucky_number);
+//	status = pb_encode(&stream, SimpleMessage_fields, &message);
+//	message_length = stream.bytes_written;*/
+//
+//	if (!status){
+//		printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
+//	}
+//}
+
