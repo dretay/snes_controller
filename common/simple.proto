@@ -1,0 +1,29 @@
+// A very simple protocol definition, consisting of only
+// one message.
+
+syntax = "proto2";
+
+
+message CommandMessage{
+	enum Verb {
+		SETCURRENT = 0;
+		RECORD = 1;
+		PLAYBACK = 2;
+		TOGGLE = 3;
+		CALIBRATE = 4;
+	}
+	required Verb verb = 1;
+	optional float target = 2;
+}
+
+message ResponseMessage{
+	optional float current = 1;
+	optional float voltage = 2;
+	message Reading {
+		required int32 duration = 1;
+		required float setting = 2;
+	}
+	repeated Reading reading = 3;
+}
+
+

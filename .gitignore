@@ -1,0 +1,5 @@
+common/common/
+snes_receiver/simple.pb.c
+snes_receiver/simple.pb.h
+snes_sender/simple.pb.c
+snes_sender/simple.pb.h
