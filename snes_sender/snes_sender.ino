@@ -23,7 +23,7 @@ uint8_t SNES_MESSAGE_BUFFER[SNESMessage_size];
 RF24 radio(9, 10);
 
 // Topology
-const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };              // Radio pipe addresses for the 2 nodes to communicate.
+const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };            
 
 
 void setup(){
@@ -69,41 +69,6 @@ void loop(void) {
 		}
 	}
 }
-
-
-//write out currently pressed buttons during message encoding
-//TODO: safety here when more than 3 buttons pressed!
-//void set_pressed_buttons(SNESMessage* message){ //SNESMessage_ControllerButton* pressedButtons){
-//	int idx = 0;
-//	SNESMessage_ControllerButton* pressedButtons = message->pressedButtons;
-//	state = buttons();
-//		
-//	if (state & SNES_B)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_B_BUTTON;
-//	if (state & SNES_Y)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_Y_BUTTON;
-//	if (state & SNES_SELECT) 
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_SELECT_BUTTON;
-//	if (state & SNES_START)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_START_BUTTON;
-//	if (state & SNES_UP)     
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_UP_BUTTON;
-//	if (state & SNES_DOWN)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_DOWN_BUTTON;
-//	if (state & SNES_LEFT)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_LEFT_BUTTON;
-//	if (state & SNES_RIGHT)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_RIGHT_BUTTON;
-//	if (state & SNES_A)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_A_BUTTON;
-//	if (state & SNES_X)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_X_BUTTON;			
-//	if (state & SNES_L)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_L_BUTTON;
-//	if (state & SNES_R)
-//		pressedButtons[idx++] = SNESMessage_ControllerButton_R_BUTTON;		
-//	message->pressedButtons_count = idx;
-//}
 
 
 int buildMessage(){

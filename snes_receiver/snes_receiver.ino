@@ -18,11 +18,12 @@
 #include "simple.pb.h"
 #include "snes_bitmasks.h"
 #define DEBUG 0
+
 // Hardware configuration
 RF24 radio(9, 10);
 
 // Topology
-const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };              // Radio pipe addresses for the 2 nodes to communicate.
+const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };           
 
 byte SNES_MESSAGE_BUFFER[SNESMessage_size];
 
@@ -49,10 +50,10 @@ void setup(){
 	//payload will be the protobuf object size
 	radio.setPayloadSize(SNESMessage_size);
 
-	radio.openWritingPipe(pipes[1]);        // Both radios listen on the same pipes by default, and switch when writing
+	radio.openWritingPipe(pipes[1]);       
 	radio.openReadingPipe(1, pipes[0]);
-	radio.startListening();                 // Start listening
-	radio.printDetails();                   // Dump the configuration of the rf unit for debugging
+	radio.startListening();                
+  if(DEBUG) radio.printDetails();   
 
   Joystick.begin();
 
