@@ -24,10 +24,16 @@
     <ClInclude Include="snes_controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="simple.pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="snes_controller.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simple.pb.c">
+      <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

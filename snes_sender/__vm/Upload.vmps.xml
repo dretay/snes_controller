@@ -9,24 +9,24 @@
       <VCCodeMacros />
     </VCCodeModel>
     <BreakPoints>
-      <BreakPoint Index="1" Name="snes_sender.ino, line 67" Id="67db7ac6-db52-4299-981c-e3105a962095" Enabled="0" Message="  Millis is currently {millis()}.&#xD;&#xA;Press F5 to continue.&#xD;&#xA;    Press Ctrl+F5 to stop debugging or close/stop the Serial Monitor&#xD;&#xA;  &#xD;&#xA;    The code is stopped at the start of the loop() function, where you see a red dot.&#xD;&#xA;    The red dot is a ‘breakpoint’.&#xD;&#xA;    This breakpoint is automatically set by Visual Micro to demonstrate the Arduino debugger.&#xD;&#xA;    Add your own breakpoints by placing the cursor on any code line and pressing F9. Press F9 again to delete the breakpoint.&#xD;&#xA;    Read more about the Visual Micro debugger at http://www.visualmicro.com/page/Debugging-for-Arduino.aspx&#xD;&#xA;    Take some time to learn about debugging, it’s worth it!&#xD;&#xA;    To switch the demo breakpoint and other tips off, deselect Visual Micro&gt;Tutorial Mode.&#xD;&#xA;" MessageTextType="0" PreProcessedMessage="  Millis is currently {0}.&#xD;&#xA;Press F5 to continue.&#xD;&#xA;    Press Ctrl+F5 to stop debugging or close/stop the Serial Monitor&#xD;&#xA;  &#xD;&#xA;    The code is stopped at the start of the loop() function, where you see a red dot.&#xD;&#xA;    The red dot is a ‘breakpoint’.&#xD;&#xA;    This breakpoint is automatically set by Visual Micro to demonstrate the Arduino debugger.&#xD;&#xA;    Add your own breakpoints by placing the cursor on any code line and pressing F9. Press F9 again to delete the breakpoint.&#xD;&#xA;    Read more about the Visual Micro debugger at http://www.visualmicro.com/page/Debugging-for-Arduino.aspx&#xD;&#xA;    Take some time to learn about debugging, it’s worth it!&#xD;&#xA;    To switch the demo breakpoint and other tips off, deselect Visual Micro&gt;Tutorial Mode.&#xD;&#xA;" Condition="millis()&gt;0 || millis()&gt;1" ConditionType="1" CurrentHits="0" File="c:\users\drew\documents\github\snes_controller\snes_sender\snes_sender.ino" FileLine="67" FileColumn="1" FunctionName="" FunctionLineOffset="1" FunctionColumnOffset="1" HitCountTarget="250" HitCountType="4" Language="C++" LocationType="3" Tag="&lt;vmbp Id='67db7ac6-db52-4299-981c-e3105a962095'/&gt;" Type="1" ToString="System.__ComObject" BreakWhenHit="1">
-        <Source>60		radio.openReadingPipe(1, pipes[1]);	
-61		radio.printDetails();                   // Dump the configuration of the rf unit for debugging
-62		counter = 69;
-63	
-64		setup_controller();
-65	}
-66	
---&gt;67	void loop(void) {
-68	
-69		printf("Now sending %d as payload. ", counter);
-70		
-71		
-72		//Called when STANDBY-I mode is engaged (User is finished sending)
-73		if (!radio.write(&amp;counter, 1)){
-74			Serial.println(F("failed."));
-75		}
-76	
+      <BreakPoint Index="1" Name="snes_sender.ino, line 58" Id="67db7ac6-db52-4299-981c-e3105a962095" Enabled="0" Message="  Millis is currently {millis()}.&#xD;&#xA;Press F5 to continue.&#xD;&#xA;    Press Ctrl+F5 to stop debugging or close/stop the Serial Monitor&#xD;&#xA;  &#xD;&#xA;    The code is stopped at the start of the loop() function, where you see a red dot.&#xD;&#xA;    The red dot is a ‘breakpoint’.&#xD;&#xA;    This breakpoint is automatically set by Visual Micro to demonstrate the Arduino debugger.&#xD;&#xA;    Add your own breakpoints by placing the cursor on any code line and pressing F9. Press F9 again to delete the breakpoint.&#xD;&#xA;    Read more about the Visual Micro debugger at http://www.visualmicro.com/page/Debugging-for-Arduino.aspx&#xD;&#xA;    Take some time to learn about debugging, it’s worth it!&#xD;&#xA;    To switch the demo breakpoint and other tips off, deselect Visual Micro&gt;Tutorial Mode.&#xD;&#xA;" MessageTextType="0" PreProcessedMessage="  Millis is currently {0}.&#xD;&#xA;Press F5 to continue.&#xD;&#xA;    Press Ctrl+F5 to stop debugging or close/stop the Serial Monitor&#xD;&#xA;  &#xD;&#xA;    The code is stopped at the start of the loop() function, where you see a red dot.&#xD;&#xA;    The red dot is a ‘breakpoint’.&#xD;&#xA;    This breakpoint is automatically set by Visual Micro to demonstrate the Arduino debugger.&#xD;&#xA;    Add your own breakpoints by placing the cursor on any code line and pressing F9. Press F9 again to delete the breakpoint.&#xD;&#xA;    Read more about the Visual Micro debugger at http://www.visualmicro.com/page/Debugging-for-Arduino.aspx&#xD;&#xA;    Take some time to learn about debugging, it’s worth it!&#xD;&#xA;    To switch the demo breakpoint and other tips off, deselect Visual Micro&gt;Tutorial Mode.&#xD;&#xA;" Condition="millis()&gt;0 || millis()&gt;1" ConditionType="1" CurrentHits="0" File="c:\users\drew\documents\github\snes_controller\snes_sender\snes_sender.ino" FileLine="58" FileColumn="1" FunctionName="" FunctionLineOffset="1" FunctionColumnOffset="1" HitCountTarget="250" HitCountType="4" Language="C++" LocationType="3" Tag="&lt;vmbp Id='67db7ac6-db52-4299-981c-e3105a962095'/&gt;" Type="1" ToString="System.__ComObject" BreakWhenHit="1">
+        <Source>51		
+52		radio.openWritingPipe(pipes[0]);
+53		radio.openReadingPipe(1, pipes[1]);	
+54		if(DEBUG) radio.printDetails();   
+55		setup_controller();
+56	}
+57	
+--&gt;58	void loop(void) {
+59		
+60		//Called when STANDBY-I mode is engaged (User is finished sending)		
+61		if (buildMessage() &gt; 0){
+62			if (!radio.write(&amp;SNES_MESSAGE_BUFFER, SNESMessage_size)){
+63				Serial.println(F("failed."));
+64			}		
+65			if (DEBUG){
+66				Serial.print("TX: ");
+67				for (int i = 0; i &lt; SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
 </Source>
         <MessageVariables>
           <MessageVariable Name="millis()" Index="1" />

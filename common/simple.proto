@@ -8,22 +8,23 @@ message SNESMessage{
   //it seems easier to just send the buttons that were pressed over the wire
   //so i don't have to share the controller bitmask knowledge with the receiver
   //but if performance becomes a big enough issue this may have to be revisited
-	enum ControllerButton {
-    B_BUTTON       = 0;
-    Y_BUTTON       = 1;
-    SELECT_BUTTON  = 2;
-    START_BUTTON   = 3;
-    UP_BUTTON      = 4;
-    DOWN_BUTTON    = 5;
-    LEFT_BUTTON    = 6;
-    RIGHT_BUTTON   = 7;
-    A_BUTTON       = 8;
-    X_BUTTON       = 9;
-    L_BUTTON       = 10;
-    R_BUTTON       = 11;
-	}
-	repeated ControllerButton pressedButtons = 1;
-	optional float voltage = 2;
+	//enum ControllerButton {
+  //      B_BUTTON       = 0;
+  //      Y_BUTTON       = 1;
+  //      SELECT_BUTTON  = 2;
+  //      START_BUTTON   = 3;
+  //      UP_BUTTON      = 4;
+  //      DOWN_BUTTON    = 5;
+  //      LEFT_BUTTON    = 6;
+  //      RIGHT_BUTTON   = 7;
+  //      A_BUTTON       = 8;
+  //      X_BUTTON       = 9;
+  //      L_BUTTON       = 10;
+  //      R_BUTTON       = 11;
+	//}
+	//repeated ControllerButton pressedButtons = 1;
+	required int32 buttonRegister = 1;
+  optional float voltage = 2;
 }
 
 
