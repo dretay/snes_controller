@@ -53,31 +53,43 @@ void setup(){
 	radio.openWritingPipe(pipes[1]);       
 	radio.openReadingPipe(1, pipes[0]);
 	radio.startListening();                
-  if(DEBUG) radio.printDetails();   
 
   Joystick.begin();
 
 }
 void apply_pressed_buttons(SNESMessage* message){ 
   int state = message->buttonRegister;
+
+  if (!((state & SNES_UP) || (state & SNES_DOWN)))
+    Joystick.setYAxis(0);
+  if (!((state & SNES_LEFT) || (state & SNES_RIGHT)))
+    Joystick.setXAxis(0);
     
   if (state & SNES_B)
     Joystick.pressButton(0);
+  else
+    Joystick.releaseButton(0);
     
   if (state & SNES_Y)
-  Joystick.pressButton(1);
+    Joystick.pressButton(1);
+  else
+    Joystick.releaseButton(1);
     
   if (state & SNES_SELECT) 
     Joystick.pressButton(2);
+ else
+    Joystick.releaseButton(2);
     
   if (state & SNES_START)
     Joystick.pressButton(3);
+  else
+    Joystick.releaseButton(3);
     
   if (state & SNES_UP)     
-    Joystick.setYAxis(127);
+    Joystick.setYAxis(127);  
     
   if (state & SNES_DOWN)
-    Joystick.setYAxis(-127);
+    Joystick.setYAxis(-127);  
     
   if (state & SNES_LEFT)
     Joystick.setXAxis(-127);
@@ -87,15 +99,23 @@ void apply_pressed_buttons(SNESMessage* message){
     
   if (state & SNES_A)
     Joystick.pressButton(4);
+  else
+    Joystick.releaseButton(4);
     
   if (state & SNES_X)
     Joystick.pressButton(5);
+  else
+    Joystick.releaseButton(5);
     
   if (state & SNES_L)
     Joystick.pressButton(6);
+  else
+    Joystick.releaseButton(6);
     
   if (state & SNES_R)
     Joystick.pressButton(7);
+  else
+    Joystick.releaseButton(7);
     
 
 }
@@ -103,6 +123,8 @@ void loop(void) {
 
 	byte pipeNo;
   bool status = false;  
+  
+
   SNESMessage message = SNESMessage_init_zero;
 	while (radio.available(&pipeNo)){		
 		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);
