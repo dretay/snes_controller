@@ -10,7 +10,7 @@
 #endif
 
 // PIN DEFINITIONS
-#define DATA_CLOCK  5
+#define DATA_CLOCK  8
 #define DATA_LATCH  7
 #define DATA_SERIAL  6
 

@@ -1,8 +1,8 @@
 /*TODO
-- should only be able to send
-- protobuf class
 - controller hardware power efficiency
 - wake on interrupt?
+- does a higher data rate help w/ dropped? need stats to confirm
+- only send a message if there is a change
 */
 #include <pb.h>
 #include <pb_encode.h>

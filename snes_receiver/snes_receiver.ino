@@ -1,10 +1,8 @@
 
 
 /*TODO
-- should only be able to recieve
-- protobuf class
-- controller hardware power efficiency
-- wake on interrupt?
+- on error give statistics of fail / success counts
+- possible to get signal strength?
 */
 #include <pb.h>
 #include <pb_decode.h>
@@ -12,6 +10,8 @@
 
 #include <SPI.h>
 #include <Joystick.h>
+#include <limits.h>
+#include "printf.h"
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "printf.h"
@@ -19,20 +19,29 @@
 #include "snes_bitmasks.h"
 #define DEBUG 0
 
+//#define STAT_WINDOW 4096
+#define STAT_WINDOW 128
+
 // Hardware configuration
 RF24 radio(9, 10);
 
 // Topology
 const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };           
 
+//RF message buffer
 byte SNES_MESSAGE_BUFFER[SNESMessage_size];
 
-// A single byte to keep track of the data being sent back and forth
-byte counter = 1;
+//store STAT_WINDOW messages - 1 = success 0 = failure
+typedef unsigned long bfield_t[STAT_WINDOW/sizeof(long) ];
+
+bfield_t MESSAGE_STATS;
+
+unsigned short MESSAGE_COUNTER = 0;
+
 
 void setup(){
 
-	Serial.begin(9600);
+	Serial.begin(115200);
 	
 	radio.begin();
 	//explicitly enable auto ack
@@ -55,6 +64,7 @@ void setup(){
 	radio.startListening();                
 
   Joystick.begin();
+  printf_begin();
 
 }
 void apply_pressed_buttons(SNESMessage* message){ 
@@ -119,6 +129,55 @@ void apply_pressed_buttons(SNESMessage* message){
     
 
 }
+int CURR_STAT_IDX = 0;
+int CURR_STAT_BIT = 0;
+
+//generate a summary of the current statistics
+void print_stats(){
+  int stat_outer = 0;
+  int stat_inner = 0;  
+  int stat_failure = 0;
+  long stat_curr;     
+  
+  for(stat_outer = 0;stat_outer < (STAT_WINDOW/sizeof(long)); stat_outer++){
+    stat_curr = MESSAGE_STATS[stat_outer];      
+    for(stat_inner = 0;stat_inner < (8 * sizeof(long)); stat_inner++){
+      if(!(stat_curr & 0x01)){        
+        stat_failure++;
+      }
+      stat_curr = stat_curr >> 1;
+    }
+  }
+  printf("%d of last %d messages were invalid\n", stat_failure, (STAT_WINDOW*2*sizeof(long)));  
+  printf("==============================================");
+}
+
+//record a single stat data point
+//use some bit shifting to try to make this fast since its going to delay controller response 
+//todo: should this be a debug feature?
+void log_stat(bool success){
+  if(CURR_STAT_IDX <= (STAT_WINDOW/sizeof(long)) ){
+    if(CURR_STAT_BIT <= (8 * sizeof(long))){
+      if(success) 
+        MESSAGE_STATS[CURR_STAT_IDX] |= 1 << CURR_STAT_BIT;
+      else 
+        MESSAGE_STATS[CURR_STAT_IDX] &= ~(1<<CURR_STAT_BIT); 
+      
+      CURR_STAT_BIT++;     
+    }else{   
+      CURR_STAT_BIT = 0;
+      CURR_STAT_IDX++;
+      log_stat(success);
+    }
+  }else{
+    //time to print out the stats and reset
+    CURR_STAT_IDX = 0;
+    CURR_STAT_BIT = 0;
+    print_stats();
+    log_stat(success);    
+  }
+}
+
 void loop(void) {
 
 	byte pipeNo;
@@ -134,14 +193,18 @@ void loop(void) {
       Serial.println("");
     }    
     
+    
     pb_istream_t stream = pb_istream_from_buffer(SNES_MESSAGE_BUFFER, SNESMessage_size);
     status = pb_decode(&stream, SNESMessage_fields, &message);
+    log_stat(status);
     if (!status){
       Serial.print("Decoding failed : ");
       Serial.println(PB_GET_ERROR(&stream));
     }
     else{
       apply_pressed_buttons(&message);
-    }    
+    }
+
+
 	}
 }
