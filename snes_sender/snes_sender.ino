@@ -14,9 +14,9 @@
 #include "printf.h"
 #include "snes_controller.h"
 #include "simple.pb.h"
-#define DEBUG 0
-
-int state = 0;
+#define DEBUG 1
+#define MAX_RETRY  5
+int LAST_CONTROLLER_READING =0;
 uint8_t SNES_MESSAGE_BUFFER[SNESMessage_size];
 
 // Hardware configuration
@@ -28,7 +28,7 @@ const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };
 
 void setup(){
 
-	Serial.begin(9600);
+	Serial.begin(115200);
 	printf_begin();
 	
 	// Setup and configure rf radio
@@ -56,16 +56,20 @@ void setup(){
 }
 
 void loop(void) {
-	
-	//Called when STANDBY-I mode is engaged (User is finished sending)		
+	int retry_cnt = 0;
 	if (buildMessage() > 0){
-		if (!radio.write(&SNES_MESSAGE_BUFFER, SNESMessage_size)){
-			Serial.println(F("failed."));
+
+		while (!radio.write(&SNES_MESSAGE_BUFFER, SNESMessage_size) && retry_cnt++ < MAX_RETRY){			
 		}		
 		if (DEBUG){
-			Serial.print("TX: ");
+			if (retry_cnt < MAX_RETRY){
+				printf("TX (%d): ", retry_cnt);
+			}
+			else{
+				printf("ABORTING TX !!! ");
+			}
 			for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
-			Serial.println("");
+			printf("\n");
 		}
 	}
 }
@@ -73,11 +77,18 @@ void loop(void) {
 
 int buildMessage(){
 	int message_length = -1;
+	int current_button_reading = 0;
 	bool status = false;	
 	SNESMessage message = SNESMessage_init_zero;
 	/*message.voltage = 1.0;
 	message.has_voltage = true;*/
-	message.buttonRegister = buttons();
+	current_button_reading = buttons();
+	
+	if (current_button_reading == LAST_CONTROLLER_READING)
+		return 0;
+
+	
+	message.buttonRegister = current_button_reading;
 
 	//set_pressed_buttons(&message);	
 	pb_ostream_t stream = pb_ostream_from_buffer(SNES_MESSAGE_BUFFER, SNESMessage_size);
@@ -86,8 +97,10 @@ int buildMessage(){
 	
 	if (!status){
 		printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
-		return NULL;
+		return 0;
 	}
+
+	LAST_CONTROLLER_READING = current_button_reading;
 	
 	
 	return message_length;
