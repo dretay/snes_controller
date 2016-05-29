@@ -3,6 +3,7 @@
 /*TODO
 - on error give statistics of fail / success counts
 - possible to get signal strength?
+- do i need the for loops for statistics? can i just keep shifting?
 */
 #include <pb.h>
 #include <pb_decode.h>
@@ -17,10 +18,7 @@
 #include "printf.h"
 #include "simple.pb.h"
 #include "snes_bitmasks.h"
-#define DEBUG 0
-
-//#define STAT_WINDOW 4096
-#define STAT_WINDOW 128
+#define DEBUG 1
 
 // Hardware configuration
 RF24 radio(9, 10);
@@ -31,13 +29,12 @@ const uint64_t pipes[2] = { 0xABCDABCD71LL, 0x544d52687CLL };
 //RF message buffer
 byte SNES_MESSAGE_BUFFER[SNESMessage_size];
 
+#define STAT_WINDOW 128
 //store STAT_WINDOW messages - 1 = success 0 = failure
-typedef unsigned long bfield_t[STAT_WINDOW/sizeof(long) ];
-
+typedef unsigned int bfield_t[STAT_WINDOW/sizeof(int) ];
 bfield_t MESSAGE_STATS;
-
-unsigned short MESSAGE_COUNTER = 0;
-
+int CURR_STAT_IDX = 0;
+int CURR_STAT_BIT = 0;
 
 void setup(){
 
@@ -129,42 +126,45 @@ void apply_pressed_buttons(SNESMessage* message){
     
 
 }
-int CURR_STAT_IDX = 0;
-int CURR_STAT_BIT = 0;
-
 //generate a summary of the current statistics
+//is it necessary to loop like this or can i just shift things? does it make a difference?
 void print_stats(){
   int stat_outer = 0;
   int stat_inner = 0;  
   int stat_failure = 0;
-  long stat_curr;     
+  int stat_success = 0;
+  int stat_curr;     
   
-  for(stat_outer = 0;stat_outer < (STAT_WINDOW/sizeof(long)); stat_outer++){
-    stat_curr = MESSAGE_STATS[stat_outer];      
-    for(stat_inner = 0;stat_inner < (8 * sizeof(long)); stat_inner++){
-      if(!(stat_curr & 0x01)){        
+  for(stat_outer = 0;stat_outer < (STAT_WINDOW/sizeof(int)); stat_outer++){
+    stat_curr = MESSAGE_STATS[stat_outer];        
+    for(stat_inner = 0;stat_inner < ((8 * sizeof(int))); stat_inner++){
+      if((stat_curr & 1)){    
+        stat_success++;
+      }
+      else{
+        if(DEBUG) printf("Stats: found an err at idx %d bit %d\n", stat_outer, stat_inner);
         stat_failure++;
       }
       stat_curr = stat_curr >> 1;
     }
   }
-  printf("%d of last %d messages were invalid\n", stat_failure, (STAT_WINDOW*2*sizeof(long)));  
-  printf("==============================================");
+  printf("~~~%d invalid %d valid of %d total~~~\n", stat_failure, stat_success, (stat_failure + stat_success));  
 }
 
 //record a single stat data point
-//use some bit shifting to try to make this fast since its going to delay controller response 
-//todo: should this be a debug feature?
+//are all the if blocks and counters necessary or can i just keep shifting till i hit my limit?
 void log_stat(bool success){
-  if(CURR_STAT_IDX <= (STAT_WINDOW/sizeof(long)) ){
-    if(CURR_STAT_BIT <= (8 * sizeof(long))){
-      if(success) 
+  if(CURR_STAT_IDX < (STAT_WINDOW/sizeof(int)) ){
+    if(CURR_STAT_BIT < (8 * sizeof(int))){
+      if(success)        
         MESSAGE_STATS[CURR_STAT_IDX] |= 1 << CURR_STAT_BIT;
-      else 
-        MESSAGE_STATS[CURR_STAT_IDX] &= ~(1<<CURR_STAT_BIT); 
-      
+      else{
+        if(DEBUG) printf("Stats: logged err at idx %d bit %d\n", CURR_STAT_IDX, CURR_STAT_BIT);
+        MESSAGE_STATS[CURR_STAT_IDX] &= ~(1<<CURR_STAT_BIT);         
+      }
       CURR_STAT_BIT++;     
     }else{   
+      
       CURR_STAT_BIT = 0;
       CURR_STAT_IDX++;
       log_stat(success);
@@ -182,11 +182,14 @@ void loop(void) {
 
 	byte pipeNo;
   bool status = false;  
-  
+  uint32_t msg_cnt = 0;
+
 
   SNESMessage message = SNESMessage_init_zero;
 	while (radio.available(&pipeNo)){		
-		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);
+		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
+    
+   
 		if (DEBUG){
       Serial.print("RX: ");
       for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
@@ -196,6 +199,7 @@ void loop(void) {
     
     pb_istream_t stream = pb_istream_from_buffer(SNES_MESSAGE_BUFFER, SNESMessage_size);
     status = pb_decode(&stream, SNESMessage_fields, &message);
+    
     log_stat(status);
     if (!status){
       Serial.print("Decoding failed : ");
@@ -203,8 +207,6 @@ void loop(void) {
     }
     else{
       apply_pressed_buttons(&message);
-    }
-
-
+    }    
 	}
 }
