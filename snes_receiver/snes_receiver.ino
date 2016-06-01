@@ -189,14 +189,14 @@ void loop(void) {
 
   SNESMessage message = SNESMessage_init_zero;
 	while (radio.available(&pipeNo)){		
-		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
+	radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
     
    
 	if (DEBUG){
-      Serial.print("RX: ");
-      for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
-      Serial.println("");
-    }    
+  	Serial.print("RX: ");
+    for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
+    Serial.println("");
+  }    
     
     
     pb_istream_t stream = pb_istream_from_buffer(SNES_MESSAGE_BUFFER, SNESMessage_size);
