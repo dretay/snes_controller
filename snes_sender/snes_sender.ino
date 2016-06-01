@@ -15,7 +15,7 @@
 #include "snes_controller.h"
 #include "simple.pb.h"
 #define DEBUG 1
-#define MAX_RETRY  5
+#define MAX_RETRY  10
 int LAST_CONTROLLER_READING =0;
 uint8_t SNES_MESSAGE_BUFFER[SNESMessage_size];
 
@@ -38,7 +38,7 @@ void setup(){
 	radio.setAutoAck(true); 
 
 	//the radio amplification should be minimal since the range is short
-	radio.setPALevel(RF24_PA_MIN);
+	radio.setPALevel(RF24_PA_LOW);
 
 	//since we're just transmitting gamepad data no need to get fancy with bitrates
 	radio.setDataRate(RF24_250KBPS);

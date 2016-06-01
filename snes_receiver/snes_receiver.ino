@@ -45,7 +45,7 @@ void setup(){
   radio.setAutoAck(true); 
 
 	//the radio amplification should be minimal since the range is short
-	radio.setPALevel(RF24_PA_MIN);
+	radio.setPALevel(RF24_PA_HIGH);
 
 	//since we're just transmitting gamepad data no need to get fancy with bitrates
 	radio.setDataRate(RF24_250KBPS);
