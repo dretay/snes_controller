@@ -183,7 +183,7 @@ void log_stat(bool success){
 void loop(void) {
 
 	byte pipeNo;
-  bool status = false;  
+	bool status = false;  
   uint32_t msg_cnt = 0;
 
 
@@ -192,7 +192,7 @@ void loop(void) {
 		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
     
    
-		if (DEBUG){
+	if (DEBUG){
       Serial.print("RX: ");
       for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
       Serial.println("");
