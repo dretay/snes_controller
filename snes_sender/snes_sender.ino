@@ -3,6 +3,7 @@
 - wake on interrupt?
 - does a higher data rate help w/ dropped? need stats to confirm
 - are 2 pipes necessary for message acks?
+- generalize stat library out of receiver and add it here
 */
 #include <pb.h>
 #include <pb_encode.h>
