@@ -41,8 +41,9 @@ void setup(){
 	Serial.begin(115200);
 	
 	radio.begin();
+	
 	//explicitly enable auto ack
-  radio.setAutoAck(true); 
+  	radio.setAutoAck(true); 
 
 	//the radio amplification should be minimal since the range is short
 	radio.setPALevel(RF24_PA_HIGH);
@@ -60,8 +61,8 @@ void setup(){
 	radio.openReadingPipe(1, pipes[0]);
 	radio.startListening();                
 
-  Joystick.begin();
-  printf_begin();
+  	Joystick.begin();
+  	printf_begin();
 
 }
 void apply_pressed_buttons(SNESMessage* message){ 
