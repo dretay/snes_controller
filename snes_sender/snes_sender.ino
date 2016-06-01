@@ -2,6 +2,7 @@
 - controller hardware power efficiency
 - wake on interrupt?
 - does a higher data rate help w/ dropped? need stats to confirm
+- are 2 pipes necessary for message acks?
 */
 #include <pb.h>
 #include <pb_encode.h>
