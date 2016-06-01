@@ -4,6 +4,7 @@
 - move stats into more common header that can be shared elsewhere
 - possible to get signal strength?
 - do i need the for loops for statistics? can i just keep shifting?
+- can all the 'else' conditional logic handling how messages are handled be generalized?
 */
 #include <pb.h>
 #include <pb_decode.h>
