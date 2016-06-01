@@ -1,7 +1,7 @@
 
 
 /*TODO
-- on error give statistics of fail / success counts
+- move stats into more common header that can be shared elsewhere
 - possible to get signal strength?
 - do i need the for loops for statistics? can i just keep shifting?
 */
