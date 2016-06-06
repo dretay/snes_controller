@@ -1,10 +1,9 @@
 
 
 /*TODO
-- move stats into more common header that can be shared elsewhere
+- on error give statistics of fail / success counts
 - possible to get signal strength?
 - do i need the for loops for statistics? can i just keep shifting?
-- can all the 'else' conditional logic handling how messages are handled be generalized?
 */
 #include <pb.h>
 #include <pb_decode.h>
@@ -42,9 +41,8 @@ void setup(){
 	Serial.begin(115200);
 	
 	radio.begin();
-	
 	//explicitly enable auto ack
-  	radio.setAutoAck(true); 
+  radio.setAutoAck(true); 
 
 	//the radio amplification should be minimal since the range is short
 	radio.setPALevel(RF24_PA_HIGH);
@@ -53,7 +51,7 @@ void setup(){
 	radio.setDataRate(RF24_250KBPS);
 
 	//no need to check crc because we're not going to retransmit
-	radio.setCRCLength(RF24_CRC_DISABLED);
+	radio.setCRCLength(RF24_CRC_8);
 
 	//payload will be the protobuf object size
 	radio.setPayloadSize(SNESMessage_size);
@@ -62,8 +60,8 @@ void setup(){
 	radio.openReadingPipe(1, pipes[0]);
 	radio.startListening();                
 
-  	Joystick.begin();
-  	printf_begin();
+  Joystick.begin();
+  printf_begin();
 
 }
 void apply_pressed_buttons(SNESMessage* message){ 
@@ -74,59 +72,83 @@ void apply_pressed_buttons(SNESMessage* message){
   if (!((state & SNES_LEFT) || (state & SNES_RIGHT)))
     Joystick.setXAxis(0);
     
-  if (state & SNES_B)
+  if (state & SNES_B){
     Joystick.pressButton(0);
+    if(DEBUG) printf("B ");
+  }
   else
     Joystick.releaseButton(0);
     
-  if (state & SNES_Y)
+  if (state & SNES_Y){
     Joystick.pressButton(1);
+    if(DEBUG) printf("Y ");
+  }
   else
     Joystick.releaseButton(1);
     
-  if (state & SNES_SELECT) 
+  if (state & SNES_SELECT){ 
     Joystick.pressButton(2);
+    if(DEBUG) printf("SELECT ");
+  }
  else
     Joystick.releaseButton(2);
     
-  if (state & SNES_START)
+  if (state & SNES_START){
     Joystick.pressButton(3);
+    if(DEBUG) printf("START ");
+  }
   else
     Joystick.releaseButton(3);
     
-  if (state & SNES_UP)     
+  if (state & SNES_UP){     
     Joystick.setYAxis(127);  
+    if(DEBUG) printf("UP ");
+  }
     
-  if (state & SNES_DOWN)
+  if (state & SNES_DOWN){
     Joystick.setYAxis(-127);  
+    if(DEBUG) printf("DOWN ");
+  }
     
-  if (state & SNES_LEFT)
+  if (state & SNES_LEFT){
     Joystick.setXAxis(-127);
+    if(DEBUG)  printf("LEFT ");
+  }
     
-  if (state & SNES_RIGHT)
+  if (state & SNES_RIGHT){
     Joystick.setXAxis(127);
+    if(DEBUG) printf("RIGHT ");
+  }
     
-  if (state & SNES_A)
+  if (state & SNES_A){
     Joystick.pressButton(4);
+    if(DEBUG)  printf("A ");
+  }
   else
     Joystick.releaseButton(4);
     
-  if (state & SNES_X)
+  if (state & SNES_X){
     Joystick.pressButton(5);
+    if(DEBUG) printf("X ");
+  }
   else
     Joystick.releaseButton(5);
     
-  if (state & SNES_L)
+  if (state & SNES_L){
     Joystick.pressButton(6);
+    if(DEBUG) printf("L ");
+  }
   else
     Joystick.releaseButton(6);
     
-  if (state & SNES_R)
+  if (state & SNES_R){
     Joystick.pressButton(7);
+    if(DEBUG) printf("R ");
+  }
   else
     Joystick.releaseButton(7);
     
-
+    if(DEBUG) printf("\n");
 }
 //generate a summary of the current statistics
 //is it necessary to loop like this or can i just shift things? does it make a difference?
@@ -143,8 +165,7 @@ void print_stats(){
       if((stat_curr & 1)){    
         stat_success++;
       }
-      else{
-        if(DEBUG) printf("Stats: found an err at idx %d bit %d\n", stat_outer, stat_inner);
+      else{        
         stat_failure++;
       }
       stat_curr = stat_curr >> 1;
@@ -160,8 +181,7 @@ void log_stat(bool success){
     if(CURR_STAT_BIT < (8 * sizeof(int))){
       if(success)        
         MESSAGE_STATS[CURR_STAT_IDX] |= 1 << CURR_STAT_BIT;
-      else{
-        if(DEBUG) printf("Stats: logged err at idx %d bit %d\n", CURR_STAT_IDX, CURR_STAT_BIT);
+      else{        
         MESSAGE_STATS[CURR_STAT_IDX] &= ~(1<<CURR_STAT_BIT);         
       }
       CURR_STAT_BIT++;     
@@ -183,21 +203,13 @@ void log_stat(bool success){
 void loop(void) {
 
 	byte pipeNo;
-	bool status = false;  
+  bool status = false;  
   uint32_t msg_cnt = 0;
 
 
   SNESMessage message = SNESMessage_init_zero;
 	while (radio.available(&pipeNo)){		
-	radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
-    
-   
-	if (DEBUG){
-  	Serial.print("RX: ");
-    for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
-    Serial.println("");
-  }    
-    
+		radio.read(&SNES_MESSAGE_BUFFER, SNESMessage_size);    
     
     pb_istream_t stream = pb_istream_from_buffer(SNES_MESSAGE_BUFFER, SNESMessage_size);
     status = pb_decode(&stream, SNESMessage_fields, &message);
@@ -209,6 +221,11 @@ void loop(void) {
     }
     else{
       apply_pressed_buttons(&message);
-    }    
+    }
+    if (DEBUG){
+      Serial.print("RX: ");
+      for (int i = 0; i < SNESMessage_size; i++) { Serial.print(SNES_MESSAGE_BUFFER[i]);; Serial.print(" "); }
+      Serial.println("");
+    }
 	}
 }

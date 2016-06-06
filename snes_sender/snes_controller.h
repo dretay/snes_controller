@@ -32,6 +32,7 @@ void strobe(void);
 int shiftin(void);
 int buttons(void);
 void setup_controller(void);
+bool is_valid(int state);
 
 #endif
 
